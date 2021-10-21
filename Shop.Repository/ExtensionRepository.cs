@@ -44,7 +44,7 @@ namespace Shop.Repository
         /// Pobieranie wszystkich danych
         /// </summary>
         /// <returns>Lista rekordów</returns>
-        public virtual IEnumerable<T> GetAll()
+        protected virtual IEnumerable<T> GetAll()
         {
             return _db.Set<T>();
         }
@@ -54,7 +54,7 @@ namespace Shop.Repository
         /// </summary>
         /// <param name="id"></param>
         /// <returns>Pojedynczy rekord</returns>
-        public virtual async Task<T> FindAsync(Guid id)
+        public virtual async Task<T> FindAsync(int id)
         {
             return await _db.FindAsync<T>(id);
         }

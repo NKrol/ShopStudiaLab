@@ -8,9 +8,6 @@ namespace Shop.Logic.Models
 {
     public partial class Xkom_ProjektContext : DbContext
     {
-        public Xkom_ProjektContext()
-        {
-        }
 
         public Xkom_ProjektContext(DbContextOptions<Xkom_ProjektContext> options)
             : base(options)
@@ -34,14 +31,7 @@ namespace Shop.Logic.Models
         public virtual DbSet<ZamowienieAll> ZamowienieAlls { get; set; }
         public virtual DbSet<Zamowienium> Zamowienia { get; set; }
         public virtual DbSet<ZdjProduktu> ZdjProduktus { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Data Source=DESKTOP-LB353BA;Initial Catalog=Xkom_Projekt;Persist Security Info=True;User ID=bercik1267;Password=12345678");
-            }
-        }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,8 +60,8 @@ namespace Shop.Logic.Models
                     .HasComputedColumnSql("([cena_brutto]-[cena_brutto]/((1)+[stawka_vat]))", false);
 
                 entity.HasOne(d => d.Produkt)
-                    .WithMany(p => p.Cenas)
-                    .HasForeignKey(d => d.ProduktId)
+                    .WithOne(p => p.Cena)
+                    .HasForeignKey<Cena>(d => d.ProduktId)
                     .HasConstraintName("FK__cena__produkt_id__2F10007B");
             });
 
@@ -88,8 +78,8 @@ namespace Shop.Logic.Models
                 entity.Property(e => e.ProduktId).HasColumnName("produkt_id");
 
                 entity.HasOne(d => d.Produkt)
-                    .WithMany(p => p.Iloscs)
-                    .HasForeignKey(d => d.ProduktId)
+                    .WithOne(p => p.Ilosc)
+                    .HasForeignKey<Ilosc>(d => d.ProduktId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__ilosc__produkt_i__2C3393D0");
             });
@@ -308,8 +298,8 @@ namespace Shop.Logic.Models
                 entity.Property(e => e.ProduktId).HasColumnName("produkt_id");
 
                 entity.HasOne(d => d.Produkt)
-                    .WithMany(p => p.ProduktOpis)
-                    .HasForeignKey(d => d.ProduktId)
+                    .WithOne(p => p.ProduktOpi)
+                    .HasForeignKey<ProduktOpi>(d => d.ProduktId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__produkt_o__produ__440B1D61");
             });
@@ -479,11 +469,11 @@ namespace Shop.Logic.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__zamowieni__id_kl__398D8EEE");
 
-                entity.HasOne(d => d.Produkt)
-                    .WithMany(p => p.Zamowienia)
-                    .HasForeignKey(d => d.ProduktId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__zamowieni__produ__37A5467C");
+                //entity.HasOne(d => d.Produkt)
+                //    .WithMany(p => p.Zamowienia)
+                //    .HasForeignKey(d => d.ProduktId)
+                //    .OnDelete(DeleteBehavior.ClientSetNull)
+                //    .HasConstraintName("FK__zamowieni__produ__37A5467C");
 
                 entity.HasOne(d => d.StatusPlatnosci)
                     .WithMany(p => p.Zamowienia)
@@ -515,8 +505,8 @@ namespace Shop.Logic.Models
                 entity.Property(e => e.ProduktId).HasColumnName("produkt_id");
 
                 entity.HasOne(d => d.Produkt)
-                    .WithMany(p => p.ZdjProduktus)
-                    .HasForeignKey(d => d.ProduktId)
+                    .WithOne(p => p.ZdjProduktu)
+                    .HasForeignKey<ZdjProduktu>(d => d.ProduktId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__zdj_produ__produ__3E52440B");
             });

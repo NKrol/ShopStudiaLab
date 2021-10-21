@@ -4,27 +4,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Shop.Repository;
+using Shop.Web.Dtos;
+using Shop.Web.Services;
 
 namespace Shop.Web.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly ProductRepository _productRepository;
+        private readonly IProductService _productService;
 
-        public ProductController(ProductRepository productRepository)
+        public ProductController(IProductService productService)
         {
-            _productRepository = productRepository;
+            _productService = productService;
         }
 
         [HttpGet]
-        public IActionResult GetAll([FromQuery] int skip,[FromQuery] int take)
+        public IActionResult GetAll([FromQuery] ProductQuery query)
         {
-            var products = _productRepository.GetAll();
+            var products = _productService.GetProducts(query);
 
-            products = products.Skip(skip).Take(take);
+            return Ok(products);
+        }
 
-            return Json(products);
+        [HttpGet]
+        public async Task<IActionResult> Get([FromRoute] int id)
+        {
+            var result = await _productService.GetProduct(id);
+
+            return Ok(result);
         }
     }
 }
