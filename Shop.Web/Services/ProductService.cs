@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Shop.Logic.Models;
-using Shop.Repository;
+using Microsoft.EntityFrameworkCore;
+using Shop.Web.Entities.Model;
+using Shop.Web.Entities.Repository;
 using Shop.Web.Dtos;
 
 namespace Shop.Web.Services
@@ -13,6 +14,7 @@ namespace Shop.Web.Services
     {
         PagedResult<ProductDto> GetProducts(ProductQuery query);
         Task<ProductDto> GetProduct(int id);
+        Task<ProductDto> AddProduct(AddProductDto dto);
     }
     
     public class ProductService : IProductService
@@ -24,10 +26,11 @@ namespace Shop.Web.Services
         private readonly PhotoRepository _photoRepository;
         private readonly QuantityRepository _quantityRepository;
         private readonly PriceRepository _priceRepository;
+        private readonly Xkom_ProjektContext _dbContext;
 
 
         public ProductService(ProductRepository productRepository, DescRepository descRepository, CategoryRepository categoryRepository, SubCategoryRepository subCategoryRepository, PhotoRepository photoRepository,
-            QuantityRepository quantityRepository, PriceRepository priceRepository)
+            QuantityRepository quantityRepository, PriceRepository priceRepository, Xkom_ProjektContext dbContext)
         {
             _productRepository = productRepository;
             _descRepository = descRepository;
@@ -36,31 +39,58 @@ namespace Shop.Web.Services
             _photoRepository = photoRepository;
             _quantityRepository = quantityRepository;
             _priceRepository = priceRepository;
+            _dbContext = dbContext;
         }
 
         public PagedResult<ProductDto> GetProducts(ProductQuery query)
         {
-            var baseQuery = _productRepository.Where(x => x.NazwaProduktu.Contains(query.SearchPhrase ?? ""));
+            //var baseQuery = _productRepository
+            //    .Where(x => x.NazwaProduktu.Contains(query.SearchPhrase ?? ""));
+
+            //if (!string.IsNullOrEmpty(query.Category))
+            //{
+            //    var categorySearch =
+            //        _categoryRepository.Find(x => x.NazwaKategorii.ToLower() == query.Category.ToLower()).Id;
+            //    if (!string.IsNullOrEmpty(query.SubCategory))
+            //    {
+            //        var subCategorySearch =
+            //            _subCategoryRepository.Find(x => x.NazwaPodkategorii.ToLower() == query.SubCategory.ToLower()).Id;
+
+            //        baseQuery = baseQuery.Where(x =>
+            //            x.KategorieId == categorySearch & x.PodkategorieId == subCategorySearch);
+            //    }
+            //    else
+            //    {
+            //        baseQuery = baseQuery.Where(x => x.KategorieId == categorySearch);
+            //    }
+            //}
+
+            //int totalItems = baseQuery.Count();
+
+            
+
+            var baseQuery = _dbContext.Produkts.Include(p => p.Cena)
+                .Include(c => c.Kategorie)
+                .Include(sc => sc.Podkategorie)
+                .Include(d => d.ProduktOpi)
+                .Include(zdj => zdj.ZdjProduktu)
+                .Include(q => q.Ilosc)
+                .Where(x => x.NazwaProduktu.Contains(query.SearchPhrase ?? ""));
 
             if (!string.IsNullOrEmpty(query.Category))
             {
-                var categorySearch =
-                    _categoryRepository.Find(x => x.NazwaKategorii.ToLower() == query.Category.ToLower()).Id;
                 if (!string.IsNullOrEmpty(query.SubCategory))
                 {
-                    var subCategorySearch =
-                        _subCategoryRepository.Find(x => x.NazwaPodkategorii.ToLower() == query.SubCategory.ToLower()).Id;
-
                     baseQuery = baseQuery.Where(x =>
-                        x.KategorieId == categorySearch & x.PodkategorieId == subCategorySearch);
+                        x.Kategorie.NazwaKategorii == query.Category & x.Podkategorie.NazwaPodkategorii == query.SubCategory);
                 }
                 else
                 {
-                    baseQuery = baseQuery.Where(x => x.KategorieId == categorySearch);
+                    baseQuery = baseQuery.Where(x => x.Kategorie.NazwaKategorii == query.Category);
                 }
             }
-            
-            int totalItems = baseQuery.Count();
+
+            var totalItems = baseQuery.Count();
 
             var productPage = baseQuery.Skip(query.PageSize * (query.PageNumber - 1)).Take(query.PageSize).ToList();
 
@@ -68,29 +98,23 @@ namespace Shop.Web.Services
 
             productPage.ForEach(x =>
             {
-                var category = _categoryRepository.Find(c => c.Id == x.KategorieId);
-                var subCategory = _subCategoryRepository.Find(sc => sc.Id == x.PodkategorieId);
-                var desc = _descRepository.Find(d => d.ProduktId == x.Id).Opis;
-                var price = _priceRepository.Find(p => p.ProduktId == x.Id);
-                var quantity = _quantityRepository.Find(q => q.ProduktId == x.Id).Ilosc1;
-                var photo = _photoRepository.Find(pd => pd.ProduktId == x.Id).PathDoZdj;
 
                 var newProduct = new ProductDto
                 {
                     ProductId = x.Id,
                     ProductName = x.NazwaProduktu,
-                    ProductDesc = desc,
+                    ProductDesc = x.ProduktOpi.Opis,
                     ProductCode = x.KodProduktu,
-                    Category = category.NazwaKategorii,
-                    Subcategory = subCategory.NazwaPodkategorii,
-                    BruttoPrice = price.CenaBrutto,
-                    NettoPrice = price.CenaNetto,
-                    Quantity = quantity,
-                    ImgPath = photo
+                    Category = x.Kategorie.NazwaKategorii,
+                    Subcategory = x.Podkategorie.NazwaPodkategorii,
+                    BruttoPrice = x.Cena.CenaBrutto,
+                    NettoPrice = x.Cena.CenaNetto,
+                    Quantity = x.Ilosc.Ilosc1,
+                    ImgPath = x.ZdjProduktu.PathDoZdj
                 };
                 dtoList.Add(newProduct);
             });
-
+            
             return new PagedResult<ProductDto>(dtoList, totalItems, query.PageSize, query.PageNumber);
         }
 
@@ -102,10 +126,10 @@ namespace Shop.Web.Services
 
             var category = _categoryRepository.Find(c => c.Id == singleProduct.KategorieId);
             var subCategory = _subCategoryRepository.Find(sc => sc.Id == singleProduct.PodkategorieId);
-            var desc = _descRepository.Find(d => d.ProduktId == singleProduct.Id).Opis;
+            var desc = _descRepository?.Find(d => d.ProduktId == singleProduct.Id).Opis;
             var price = _priceRepository.Find(p => p.ProduktId == singleProduct.Id);
-            var quantity = _quantityRepository.Find(q => q.ProduktId == singleProduct.Id).Ilosc1;
-            var photo = _photoRepository.Find(pd => pd.ProduktId == singleProduct.Id).PathDoZdj;
+            var quantity = _quantityRepository.Find(q => q.ProduktId == singleProduct.Id)?.Ilosc1;
+            var photo = _photoRepository.Find(pd => pd.ProduktId == singleProduct.Id)?.PathDoZdj;
 
             var result = new ProductDto
             {
@@ -117,35 +141,59 @@ namespace Shop.Web.Services
                 Subcategory = subCategory.NazwaPodkategorii,
                 BruttoPrice = price.CenaBrutto,
                 NettoPrice = price.CenaNetto,
-                Quantity = quantity,
+                Quantity = quantity ?? 0,
                 ImgPath = photo
             };
 
             return result;
         }
 
-        /*
-         var category = _categoryRepository.Find(c => c.Id == x.KategorieId);
-                var subCategory = _subCategoryRepository.Find(sc => sc.Id == x.PodkategorieId);
-                var desc = _descRepository.Find(d => d.ProduktId == x.Id).Opis;
-                var price = _priceRepository.Find(p => p.ProduktId == x.Id);
-                var quantity = _quantityRepository.Find(q => q.ProduktId == x.Id).Ilosc1;
-                var photo = _photoRepository.Find(pd => pd.ProduktId == x.Id).PathDoZdj;
+        public async Task<ProductDto> AddProduct(AddProductDto dto)
+        {
+            
+            var category =  _categoryRepository.Find(x => x.Id == dto.CategoryId);
+            var subCategory = _subCategoryRepository.Find(x => x.Id == dto.SubCategoryId);
+            var product = await _productRepository.AddAsync(new Produkt
+            {
+                NazwaProduktu = dto.ProductName,
+                Kategorie = category,
+                Podkategorie = subCategory,
+                Cena = null,
+                Ilosc = null,
+                ProduktOpi = null,
+                ZdjProduktu = null
+            });
 
-                var newProduct = new ProductDto
-                {
-                    ProductId = x.Id,
-                    ProductName = x.NazwaProduktu,
-                    ProductDesc = desc,
-                    ProductCode = x.KodProduktu,
-                    Category = category.NazwaKategorii,
-                    Subcategory = subCategory.NazwaPodkategorii,
-                    BruttoPrice = price.CenaBrutto,
-                    NettoPrice = price.CenaNetto,
-                    Quantity = quantity,
-                    ImgPath = photo
-                };
-                productDtos.Add(newProduct);
-         */
+            var descToSave = new ProduktOpi()
+            {
+                Opis = dto.ProductDesc,
+                Produkt = product
+            };
+
+            var desc = await _descRepository.AddAsync(descToSave);
+
+            var priceToSave = new Cena()
+            {
+                CenaBrutto = dto.ProductPrice,
+                Produkt = product
+            };
+            var price = await _priceRepository.AddAsync(priceToSave);
+
+            var productDto = new ProductDto
+            {
+                ProductId = product.Id,
+                ProductName = product.NazwaProduktu,
+                ProductDesc = desc.Opis,
+                ProductCode = 0,
+                Category = category.NazwaKategorii,
+                Subcategory = subCategory.NazwaPodkategorii,
+                BruttoPrice = 0,
+                NettoPrice = 0,
+                Quantity = 0,
+                ImgPath = null
+            };
+
+            return productDto;
+        }
     }
 }

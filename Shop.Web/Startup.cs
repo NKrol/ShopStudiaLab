@@ -7,14 +7,16 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Shop.Logic.Models;
-using Shop.Repository;
+using Newtonsoft.Json.Serialization;
+using Shop.Web.Entities.Model;
+using Shop.Web.Entities.Repository;
 using Shop.Web.Dtos;
 using Shop.Web.Dtos.Validators;
 using Shop.Web.Services;
@@ -47,11 +49,33 @@ namespace Shop.Web
             services.AddScoped<QuantityRepository>();
             services.AddScoped<IValidator<ProductQuery>, ProductQueryValidator>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
+            services.AddMvc().AddJsonOptions(o =>
+            {
+                o.JsonSerializerOptions.PropertyNamingPolicy = null;
+                o.JsonSerializerOptions.DictionaryKeyPolicy = null;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -64,6 +88,8 @@ namespace Shop.Web
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseDefaultFiles();
 
             app.UseRouting();
 
