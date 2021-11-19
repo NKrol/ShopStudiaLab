@@ -19,7 +19,6 @@ namespace Shop.Web.Controllers
             _dbContext = dbContext;
         }
 
-
         [HttpGet]
         public IActionResult Get()
         {

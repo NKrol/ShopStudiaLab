@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Shop.Web.Entities.Repository;
 using Shop.Web.Dtos;
 using Shop.Web.Services;

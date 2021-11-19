@@ -157,11 +157,7 @@ namespace Shop.Web.Services
             {
                 NazwaProduktu = dto.ProductName,
                 Kategorie = category,
-                Podkategorie = subCategory,
-                Cena = null,
-                Ilosc = null,
-                ProduktOpi = null,
-                ZdjProduktu = null
+                Podkategorie = subCategory
             });
 
             var descToSave = new ProduktOpi()
@@ -179,6 +175,14 @@ namespace Shop.Web.Services
             };
             var price = await _priceRepository.AddAsync(priceToSave);
 
+            var quantityToSave = new Ilosc()
+            {
+                Ilosc1 = dto.Quantity,
+                Produkt = product
+            };
+
+            var quantity = await _quantityRepository.AddAsync(quantityToSave);
+
             var productDto = new ProductDto
             {
                 ProductId = product.Id,
@@ -187,9 +191,9 @@ namespace Shop.Web.Services
                 ProductCode = 0,
                 Category = category.NazwaKategorii,
                 Subcategory = subCategory.NazwaPodkategorii,
-                BruttoPrice = 0,
-                NettoPrice = 0,
-                Quantity = 0,
+                BruttoPrice = price.CenaBrutto,
+                NettoPrice = price.CenaNetto,
+                Quantity = quantity.Ilosc1,
                 ImgPath = null
             };
 

@@ -9,6 +9,8 @@ namespace Shop.Web.Dtos
     public class AddProductDto
     {
         public string ProductName { get; set; }
+        public string ProductCode { get; set; }
+        public int Quantity { get; set; }
         public string ProductDesc { get; set; }
         public double ProductPrice { get; set; }
         public int CategoryId { get; set; }
