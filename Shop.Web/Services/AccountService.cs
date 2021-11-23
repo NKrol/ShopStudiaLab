@@ -23,17 +23,15 @@ namespace Shop.Web.Services
     public class AccountService : IAccountService
     {
         private readonly KlientKontoRepository _kontoRepository;
-        private readonly IPasswordHasher<KlientKonto> _hasher;
-        private readonly Xkom_ProjektContext _dbContext;
         private readonly AuthenticationSettings _settings;
+        private readonly ClientRepository _clientRepository;
 
 
-        public AccountService(KlientKontoRepository kontoRepository, IPasswordHasher<KlientKonto> hasher, Xkom_ProjektContext dbContext, AuthenticationSettings settings)
+        public AccountService(KlientKontoRepository kontoRepository, AuthenticationSettings settings, ClientRepository clientRepository)
         {
             _kontoRepository = kontoRepository;
-            _hasher = hasher;
-            _dbContext = dbContext;
             _settings = settings;
+            _clientRepository = clientRepository;
         }
         public async Task Register(RegisterDto dto)
         {
@@ -48,6 +46,23 @@ namespace Shop.Web.Services
             var passwordHash = KlientKonto.Encrypt(dto.Password);
 
             newUser.Haslo = passwordHash;
+            newUser.Sol = Guid.NewGuid();
+
+            var client = new Klient
+            {
+                Imie = "test",
+                Nazwisko = "test",
+                Nip = null,
+                NazwaFirmy = null,
+                KodPocztowy = null,
+                Miasto = "test",
+                Mail = dto.Email,
+                Telefon = "123-456-789"
+            };
+
+            var clientAfterSave = await _clientRepository.AddAsync(client);
+
+            newUser.Klient = clientAfterSave;
 
             await _kontoRepository.AddAsync(newUser);
         }

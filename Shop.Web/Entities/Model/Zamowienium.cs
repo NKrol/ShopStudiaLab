@@ -10,7 +10,7 @@ namespace Shop.Web.Entities.Model
         public int ProduktId { get; set; }
         public int CenaId { get; set; }
         public int Ilosc { get; set; }
-        public DateTime? DataZamowienia { get; set; }
+        public DateTime? DataZamowienia { get; set; } = DateTime.Now;
         public int IdKlienta { get; set; }
         public int StatusPlatnosciId { get; set; }
         public int StatusZamowieniaId { get; set; }

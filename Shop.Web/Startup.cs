@@ -75,8 +75,13 @@ namespace Shop.Web
             services.AddScoped<PhotoRepository>();
             services.AddScoped<DescRepository>();
             services.AddScoped<QuantityRepository>();
+            services.AddScoped<KlientKontoRepository>();
+            services.AddScoped<OrdersRepository>();
+            services.AddScoped<ClientRepository>();
             services.AddScoped<IValidator<ProductQuery>, ProductQueryValidator>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ErrorHandlingMiddleware>();
             services.AddCors(options =>
             {

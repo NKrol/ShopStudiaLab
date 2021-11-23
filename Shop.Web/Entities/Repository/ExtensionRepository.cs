@@ -21,8 +21,14 @@ namespace Shop.Web.Entities.Repository
         public virtual async Task<T> AddAsync(T value)
         {
             var r = await _db.AddAsync<T>(value);
-            await SaveChangesAsync();
+            _db.SaveChanges();
             return r.Entity;
+        }
+
+        public virtual async Task AddRangeAsync(List<T> value)
+        {
+            await _db.AddRangeAsync(value);
+            await SaveChangesAsync();
         }
 
         /// <summary>

@@ -23,6 +23,7 @@ namespace Shop.Web.Entities.Model
         public string Telefon { get; set; }
 
         public virtual ICollection<KlientKonto> KlientKontos { get; set; }
+        //public virtual KlientKonto KlientKonto { get; set; }
         public virtual ICollection<Zamowienium> Zamowienia { get; set; }
     }
 }
