@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Shop.Web.Services
         PagedResult<ProductDto> GetProducts(ProductQuery query);
         Task<ProductDto> GetProduct(int id);
         Task<ProductDto> AddProduct(AddProductDto dto);
+        List<ProductToCart> GetProductToCart(string numbers);
     }
     
     public class ProductService : IProductService
@@ -198,6 +200,21 @@ namespace Shop.Web.Services
             };
 
             return productDto;
+        }
+
+        public List<ProductToCart> GetProductToCart(string numbers)
+        {
+            List<int> lists = new();
+
+            var count = numbers.Count(e => e == ';');
+            for (int i = 0; i < count; i++)
+            {
+                var toAddList = numbers[..numbers.IndexOf(';')];
+                numbers = numbers.Remove(0, numbers.IndexOf(';') + 1);
+                lists.Add(int.Parse(toAddList));
+            }
+
+            return (from x in lists let name = _productRepository.Find(c => c.Id == x).NazwaProduktu let price = _priceRepository.Find(p => p.ProduktId == x).CenaBrutto select new ProductToCart { ProductId = x, ProductName = name, BruttoPrice = price.ToString(CultureInfo.InvariantCulture) }).ToList();
         }
     }
 }

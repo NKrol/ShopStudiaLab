@@ -44,5 +44,13 @@ namespace Shop.Web.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet, Route("tocart")]
+        public IActionResult GetToCart([FromQuery]string numbers)
+        {
+            var result = _productService.GetProductToCart(numbers);
+
+            return Ok(result);
+        }
     }
 }
