@@ -204,17 +204,34 @@ namespace Shop.Web.Services
 
         public List<ProductToCart> GetProductToCart(string numbers)
         {
-            List<int> lists = new();
+            Dictionary<int,int> lists = new();
 
             var count = numbers.Count(e => e == ';');
             for (int i = 0; i < count; i++)
             {
                 var toAddList = numbers[..numbers.IndexOf(';')];
                 numbers = numbers.Remove(0, numbers.IndexOf(';') + 1);
-                lists.Add(int.Parse(toAddList));
+                if (lists.Any(x => x.Key == int.Parse(toAddList)))
+                {
+                    foreach (var (key, value1) in lists)
+                    {
+                        var valueToadd = value1;
+                        if (key == int.Parse(toAddList)) lists[key] = valueToadd + 1;
+                    }
+                }
+                else lists.Add(int.Parse(toAddList), 1);
             }
 
-            return (from x in lists let name = _productRepository.Find(c => c.Id == x).NazwaProduktu let price = _priceRepository.Find(p => p.ProduktId == x).CenaBrutto select new ProductToCart { ProductId = x, ProductName = name, BruttoPrice = price.ToString(CultureInfo.InvariantCulture) }).ToList();
+            return (from x in lists 
+                let name = _productRepository.Find(c => c.Id == x.Key).NazwaProduktu 
+                let price = _priceRepository.Find(p => p.ProduktId == x.Key).CenaBrutto 
+                select new ProductToCart
+            {
+                ProductId = x.Key,
+                Quantity = x.Value.ToString(),
+                ProductName = name, 
+                BruttoPrice = price.ToString(CultureInfo.InvariantCulture)
+            }).ToList();
         }
     }
 }
