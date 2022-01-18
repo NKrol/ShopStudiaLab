@@ -46,6 +46,8 @@ namespace Shop.Web.Services
 
         public PagedResult<ProductDto> GetProducts(ProductQuery query)
         {
+
+            var cos = "asd";
             //var baseQuery = _productRepository
             //    .Where(x => x.NazwaProduktu.Contains(query.SearchPhrase ?? ""));
 
@@ -69,15 +71,19 @@ namespace Shop.Web.Services
 
             //int totalItems = baseQuery.Count();
 
-            
+
 
             var baseQuery = _dbContext.Produkts.Include(p => p.Cena)
                 .Include(c => c.Kategorie)
                 .Include(sc => sc.Podkategorie)
                 .Include(d => d.ProduktOpi)
                 .Include(zdj => zdj.ZdjProduktu)
-                .Include(q => q.Ilosc)
-                .Where(x => x.NazwaProduktu.Contains(query.SearchPhrase ?? ""));
+                .Include(q => q.Ilosc).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query.SearchPhrase))
+            {
+                baseQuery = baseQuery.Where(x => x.NazwaProduktu.Contains(query.SearchPhrase));
+            }
 
             if (!string.IsNullOrEmpty(query.Category))
             {
@@ -88,34 +94,45 @@ namespace Shop.Web.Services
                 }
                 else
                 {
-                    baseQuery = baseQuery.Where(x => x.Kategorie.NazwaKategorii == query.Category);
+                    baseQuery = baseQuery.Where(x => 
+                        x.Kategorie.NazwaKategorii == query.Category);
                 }
+            }
+
+            if (query.SortPrice)
+            {
+                baseQuery = query.Asc
+                    ? baseQuery.OrderBy(x => 
+                        x.Cena.CenaBrutto)
+                    : baseQuery.OrderByDescending(x =>
+                        x.Cena.CenaBrutto);
+            }
+            else
+            {
+                baseQuery = query.Asc
+                    ? baseQuery.OrderBy(x => 
+                        x.NazwaProduktu)
+                    : baseQuery.OrderByDescending(x => 
+                        x.NazwaProduktu);
             }
 
             var totalItems = baseQuery.Count();
 
-            var productPage = baseQuery.Skip(query.PageSize * (query.PageNumber - 1)).Take(query.PageSize).ToList();
+            var productPage = baseQuery.Skip(query.PageSize * (query.PageNumber - 1)).Take(query.PageSize);
 
-            List<ProductDto> dtoList = new();
-
-            productPage.ForEach(x =>
-            {
-
-                var newProduct = new ProductDto
+            List<ProductDto> dtoList = productPage.Select(x  => new ProductDto
                 {
                     ProductId = x.Id,
-                    ProductName = x.NazwaProduktu,
-                    ProductDesc = x.ProduktOpi.Opis,
+                    ProductName = x.NazwaProduktu ?? null,
+                    ProductDesc = x.ProduktOpi.Opis ?? null,
                     ProductCode = x.KodProduktu,
-                    Category = x.Kategorie.NazwaKategorii,
-                    Subcategory = x.Podkategorie.NazwaPodkategorii,
-                    BruttoPrice = x.Cena.CenaBrutto,
+                    Category = x.Kategorie.NazwaKategorii ?? null,
+                    Subcategory = x.Podkategorie.NazwaPodkategorii ?? null,
+                    BruttoPrice = x.Cena.CenaBrutto ,
                     NettoPrice = x.Cena.CenaNetto,
                     Quantity = x.Ilosc.Ilosc1,
-                    ImgPath = x.ZdjProduktu.PathDoZdj
-                };
-                dtoList.Add(newProduct);
-            });
+                    ImgPath = x.ZdjProduktu.PathDoZdj ?? null
+            }).ToList();
             
             return new PagedResult<ProductDto>(dtoList, totalItems, query.PageSize, query.PageNumber);
         }

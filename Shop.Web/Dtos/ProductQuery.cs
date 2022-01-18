@@ -13,6 +13,8 @@ namespace Shop.Web.Dtos
         public int PageSize { get; set; }
         public string Category { get; set; }
         public string SubCategory { get; set; }
-
+        public bool SortName { get; set; }
+        public bool SortPrice { get; set; }
+        public bool Asc { get; set; } = true;
     }
 }
