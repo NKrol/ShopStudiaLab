@@ -11,7 +11,7 @@ namespace Shop.Web.Dtos.Validators
     {
         private int[] allowedPageSize = new[]
         {
-            5, 10, 15
+            10, 15, 20,30
         };
 
         //private string[] allowedSortByColumnName =
