@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
 namespace Shop.Web.Entities.Model
 {
     public partial class Zamowienium : RecordBase
-    {
+    { 
+        public int jakiezamow_id { get; set; }
         public int ProduktId { get; set; }
         public int CenaId { get; set; }
         public int Ilosc { get; set; }

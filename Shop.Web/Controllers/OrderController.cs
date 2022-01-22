@@ -19,8 +19,8 @@ namespace Shop.Web.Controllers
             _orderService = orderService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateOrder(OrderDto dto)
+        [HttpPost, Route("CreateOrder")]
+        public async Task<IActionResult> CreateOrder([FromBody]OrderDto dto)
         {
             await _orderService.Create(dto);
 

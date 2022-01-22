@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Shop.Web.Entities.Model
 {
-    public partial class KlientKonto : RecordBase
+    public class KlientKonto : RecordBase
     {
         public string Mail { get; set; }
         public byte[] Haslo { get; set; }

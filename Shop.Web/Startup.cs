@@ -65,7 +65,7 @@ namespace Shop.Web
 
             services.AddControllersWithViews();
             services.AddDbContext<Xkom_ProjektContext>(o =>
-                o.UseSqlServer(Configuration.GetConnectionString("asd"), b => b.MigrationsAssembly("Shop.Web"))
+                o.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Shop.Web"))
                     .LogTo(Console.WriteLine)
                     .EnableSensitiveDataLogging(true));
             services.AddScoped<ProductRepository>();
@@ -77,6 +77,7 @@ namespace Shop.Web
             services.AddScoped<DescRepository>();
             services.AddScoped<QuantityRepository>();
             services.AddScoped<KlientKontoRepository>();
+            services.AddScoped<KlientRepository>();
             services.AddScoped<OrdersRepository>();
             services.AddScoped<ClientRepository>();
             services.AddScoped<IValidator<ProductQuery>, ProductQueryValidator>();

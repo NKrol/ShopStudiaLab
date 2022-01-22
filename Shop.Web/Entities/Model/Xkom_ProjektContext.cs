@@ -435,7 +435,7 @@ namespace Shop.Web.Entities.Model
 
                 entity.HasIndex(e => e.ProduktId, "zamowienia_produkt_id");
 
-                entity.HasIndex(e => e.Id, "zamowienia_zamowienie_id");
+                entity.HasIndex(e => e.Id, "id");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -454,8 +454,7 @@ namespace Shop.Web.Entities.Model
                 entity.Property(e => e.StatusPlatnosciId).HasColumnName("status_platnosci_id");
 
                 entity.Property(e => e.StatusZamowieniaId).HasColumnName("status_zamowienia_id");
-
-                entity.Property(e => e.Id).HasColumnName("zamowienie_id");
+                entity.Property(e => e.jakiezamow_id).HasColumnName("jakiezamow_id");
 
                 entity.HasOne(d => d.Cena)
                     .WithMany(p => p.Zamowienia)
